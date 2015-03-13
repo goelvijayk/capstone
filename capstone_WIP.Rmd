@@ -1,0 +1,31 @@
+---
+title: "Capstone_WIP"
+author: "Vijay Goel"
+date: "March 12, 2015"
+output: html_document
+---
+
+Tasks to accomplish
+* Tokenization - identifying appropriate tokens such as words, punctuation, and numbers. Writing a function that takes a file as input and returns a tokenized version of it.
+* Profanity filtering - removing profanity and other words you do not want to predict.
+
+Questions to consider
+* How should you handle punctuation?
+* The data contains lots of times, dates, numbers and currency values. How to handle these? Are they useful for prediction?
+* How do you find typos in the data?
+* How do you identify garbage, or the wrong language?
+* How do you define profanity? How do you ensure you don't remove words you want to include?
+* How do you handle capital and lower cases?
+* What is the best set of features you might use to predict the next word?
+
+-- script File is scratch_capstone.R
+
+Data downloaded from Coursera link provided, and zip file extracted manually. file en_US.blogs.txt used for data analysis.
+
+Load and format the data first.
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+source("~/Documents/Training/Capstone_Swiftkey/scratch_capstone.R")
+initialize()
+clean<- cleanTokenizeCorpus(clean)
+print(messages)
+```
