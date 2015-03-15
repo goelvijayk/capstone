@@ -8,19 +8,19 @@ library(RWeka)
 library(RWekajars)
 library(R.utils)
 
-initialize <- function() {
+initialize <- function(a) {
   setwd("~/Documents/Training/Capstone_Swiftkey/final/en_US")
 
   con <- file("en_US.blogs.txt", "r")
-  b<- readLines(con, 1000) #raw small sample to get started with
+  b<- readLines(con, a) #raw small sample to get started with
   close(con)
 
   con <- file("en_US.twitter.txt", "r")
-  t<- readLines(con, 1000) #raw small sample to get started with
+  t<- readLines(con, a) #raw small sample to get started with
   close(con)
 
   con <- file("en_US.news.txt", "r")
-  n<- readLines(con, 1000) #raw small sample to get started with
+  n<- readLines(con, a) #raw small sample to get started with
   close(con)
 
   symbolsRemove <<- c("$", "€", "£", ":", ",", "!","-","'", "‘", "’", "-", ".", "?", ")", "(", "&", "/","|", "<", ">", "_", "=", "+", "*", "%", "@", "!", "#") # symbols to be removed
@@ -43,11 +43,16 @@ initialize <- function() {
   messages<<- rbind(messages, paste("Total words in en_US.news.txt sample are - ", sum(tdm)))
   messages<<- rbind(messages, paste("Total unique words in en_US.news.txt sample are - ", dim(tdm)[1]))
 
-  rm(bc); rm(tc); rm(nc); rm(tdm);
+  rm(bc);
+  rm(tc);
+  rm(nc);
+  rm(tdm);
   gc()
 
   clean<<- Corpus(VectorSource(c(t,b,n))) #corpus
-  rm(b); rm(t); rm(n);
+  rm(b);
+  rm(t);
+  rm(n);
   gc()
 
   #make lists of profane words
@@ -72,17 +77,6 @@ wordsRemoved <- function(x) {
   lost <- r-runningCount
   return(lost)
 }
-
-#function to replace symbols inside words
-gsub2<- function(myPattern, myCorpus){
-  for (i in 1:length(myCorpus)){
-    for (j in 1:length(myPattern)){
-      myCorpus[[i]]<- gsub(myPattern[j],"", myCorpus[[i]], fixed=TRUE)
-    }
-  }
-  return(myCorpus)
-}
-
 
 #rm(c)
 #http://www.unt.edu/rss/class/Jon/R_SC/Module12/BasicTextMining.R
@@ -111,7 +105,7 @@ cleanTokenizeCorpus <- function(clean) {
   messages<<- rbind(messages,paste("Unique words removed by removing numbers - ", wordsRemoved(clean)))
   #inspect(tdm[1:10,1])
 
-  clean <<- tm_map(clean, removeWords, c(stopwords("english")))
+  clean <- tm_map(clean, removeWords, c(stopwords("english")))
   messages<<- rbind(messages,paste("Unique stopwords removed - ",wordsRemoved(clean)))
   #inspect(tdm[1:20,1])
 
@@ -133,23 +127,57 @@ cleanTokenizeCorpus <- function(clean) {
   rm(dat2)
   rm(dat3)
   gc()
-  messages<<- rbind(messages,paste("Unique words removed due to these entries - ",wordsRemoved(clean)))
+  messages<<- rbind(messages,paste("Unique words removed due to special character entries - ",wordsRemoved(clean)))
 
   clean <- tm_map(clean, stripWhitespace)
 
   #tdm <- TermDocumentMatrix(clean)
   #findFreqTerms(x = tdm, lowfreq = 1, highfreq = 1)[1:20]
+  gc()
+  tdm <<- TermDocumentMatrix(clean)
+  allWords<<- data.frame(freq = sort(rowSums(as.matrix(tdm)), decreasing=TRUE)) #dictionary of word with frequency
 
   #inspect(tdm[1:5,1])
   return(clean)
+
 }
 
 
+################
+#Execution scripts - to become part of rmd, and not functions
 
+#clean[[20]]
+#inspect(tdm[1:20,1:2])
+#rownames(tdm)[1:20]
+gc()
 
-#inspect(tdm[,1:2])
+#w = as.data.frame((as.matrix(tdm )) )
+#plot(table(colSums(w)))
 #findFreqTerms(x = tdm, lowfreq = 8, highfreq = Inf)
 #findAssocs(x = tdm, term = "away", corlimit = 0.2)
 #tdm.common.60 <- removeSparseTerms(x = tdm, sparse = 0.60) #higher sparse = more terms retained
 #rm(tdm.common.60)
 
+#findFreqTerms(tdm, 10)
+#findAssocs(tdm, 'will',.5)
+
+#inspect(DocumentTermMatrix(clean, list(dictionary = d))) #gives # of occurences of each of these words in each document
+#kmeans(tdm, 2)
+
+
+#display.brewer.all(type="div")
+makeCloud<- function(x) {
+  library(wordcloud)
+  require(RColorBrewer)
+  pal <- brewer.pal(9,"RdYlGn")
+  pal <- pal[-(4:6)]
+  print(
+    wordcloud(
+  rownames(allWords)[1:x],
+  as.numeric(allWords[1:x,1]),
+  min.freq=3, max.words=x,
+  random.order = FALSE, colors=pal
+    )
+  )
+  #return(r)
+}
