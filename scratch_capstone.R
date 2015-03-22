@@ -5,34 +5,65 @@
 
 library(tm)
 library(RWeka)
-library(RWekajars)
 library(R.utils)
+require(slam)
 
-initialize <- function(a) {
+set.seed(2180)
+
+initialize <- function() {
   setwd("~/Documents/Training/Capstone_Swiftkey/final/en_US")
 
-  con <- file("en_US.blogs.txt", "r")
-  b<- readLines(con, a) #raw small sample to get started with
-  close(con)
+  b<- readLines("en_US.blogs.txt")[rbinom(countLines("en_US.blogs.txt"),1,0.01)>0] #raw small sample to get started with
+  t<- readLines("en_US.twitter.txt")[rbinom(countLines("en_US.twitter.txt"),1,0.01)>0] #raw small sample to get started with
+  n<- readLines("en_US.news.txt")[rbinom(countLines("en_US.news.txt"),1,0.01)>0] #raw small sample to get started with
 
-  con <- file("en_US.twitter.txt", "r")
-  t<- readLines(con, a) #raw small sample to get started with
-  close(con)
-
-  con <- file("en_US.news.txt", "r")
-  n<- readLines(con, a) #raw small sample to get started with
-  close(con)
 
   symbolsRemove <<- c("$", "€", "£", ":", ",", "!","-","'", "‘", "’", "-", ".", "?", ")", "(", "&", "/","|", "<", ">", "_", "=", "+", "*", "%", "@", "!", "#") # symbols to be removed
 
-  messages<<- "For display"
+  messages<<- "Few interesting facts -"
+
+  gc()
+
+  t2<- " "
+  l <- as.integer(length(t)/100)
+  for (j in 0:99) {
+    for (i in 1:l) {
+      t2[j+1]<- paste(t2[j+1], t[j*l+i])
+    }
+  }
+
+  b2<- " "
+  l <- as.integer(length(b)/100)
+  for (j in 0:99) {
+    for (i in 1:l) {
+      b2[j+1]<- paste(b2[j+1], b[j*l+i])
+    }
+  }
+
+  n2<- " "
+  l <- as.integer(length(n)/100)
+  for (j in 0:99) {
+    for (i in 1:l) {
+      n2[j+1]<- paste(n2[j+1], n[j*l+i])
+    }
+  }
+  clean<<- Corpus(VectorSource(c(t2,b2,n2))) #corpus
+
+  rm(b);
+  rm(t);
+  rm(n);
+  gc()
+
   messages<<- rbind(messages, paste("Total lines in en_US.blogs.txt are - ",as.numeric(countLines("en_US.blogs.txt"))))
   messages<<- rbind(messages, paste("Total lines in en_US.news.txt are - ",as.numeric(countLines("en_US.news.txt"))))
   messages<<- rbind(messages, paste("Total lines in en_US.twitter.txt are - ",as.numeric(countLines("en_US.twitter.txt"))))
+  messages<<- rbind(messages, paste("Length of longest line in en_US.blogs.txt is - ",max(nchar(readLines("en_US.blogs.txt")))))
+  messages<<- rbind(messages, paste("Length of longest line in en_US.news.txt is - ",max(nchar(readLines("en_US.news.txt")))))
+  messages<<- rbind(messages, paste("Length of longest line in en_US.twitter.txt is - ",max(nchar(readLines("en_US.twitter.txt")))))
 
-  bc<<- Corpus(VectorSource(c(b))) #corpus
-  tc<<- Corpus(VectorSource(c(t))) #corpus
-  nc<<- Corpus(VectorSource(c(n))) #corpus
+  bc<<- Corpus(VectorSource(c(b2))) #corpus
+  tc<<- Corpus(VectorSource(c(t2))) #corpus
+  nc<<- Corpus(VectorSource(c(n2))) #corpus
   tdm <<- TermDocumentMatrix(tc)
   messages<<- rbind(messages, paste("Total words in en_US.twitter.txt sample are - ", sum(tdm)))
   messages<<- rbind(messages, paste("Total unique words in en_US.twitter.txt sample are - ", dim(tdm)[1]))
@@ -43,31 +74,19 @@ initialize <- function(a) {
   messages<<- rbind(messages, paste("Total words in en_US.news.txt sample are - ", sum(tdm)))
   messages<<- rbind(messages, paste("Total unique words in en_US.news.txt sample are - ", dim(tdm)[1]))
 
-  rm(bc);
-  rm(tc);
-  rm(nc);
-  rm(tdm);
-  gc()
-
-  clean<<- Corpus(VectorSource(c(t,b,n))) #corpus
-  rm(b);
-  rm(t);
-  rm(n);
-  gc()
-
   #make lists of profane words
-  #http://www.bannedwordlist.com/lists/swearWords.csv
   #http://www.frontgatemedia.com/a-list-of-723-bad-words-to-blacklist-and-how-to-use-facebooks-moderation-tool/
   setwd("..")
   setwd("..")
-  profaneWords1 <- read.csv("swearWords.csv")
-  profaneWords1<<- names(profaneWords1)
   profaneWords2 <- read.csv("Terms-to-Block.csv")
   profaneWords2<<- profaneWords2[2]
   p<- as.character(profaneWords2[,1])
   profaneWords2<<- gsub(",", "", p)
 
+
 }
+
+
 
 #count of words removed during data cleaning: for reporting
 wordsRemoved <- function(x) {
@@ -78,7 +97,6 @@ wordsRemoved <- function(x) {
   return(lost)
 }
 
-#rm(c)
 #http://www.unt.edu/rss/class/Jon/R_SC/Module12/BasicTextMining.R
 cleanTokenizeCorpus <- function(clean) {
 
@@ -90,24 +108,6 @@ cleanTokenizeCorpus <- function(clean) {
 
   clean <- tm_map(clean, tolower)
   messages<<- rbind(messages,paste("Unique words removed by changing to lower case - ", wordsRemoved(clean)))
-  #inspect(tdm[1:10,1])
-
-  clean <- tm_map(clean, removeWords, profaneWords1)
-  clean <- tm_map(clean, removeWords, profaneWords2)
-  messages<<- rbind(messages,paste("Unique words removed due to profanity - ", wordsRemoved(clean)))
-
-  clean <- tm_map(clean, removePunctuation)
-  #clean[[20]]
-  messages<<- rbind(messages,paste("Unique words removed by removing punctuation - ",wordsRemoved(clean)))
-  #inspect(tdm[1:10,1])
-
-  clean <- tm_map(clean, removeNumbers)
-  messages<<- rbind(messages,paste("Unique words removed by removing numbers - ", wordsRemoved(clean)))
-  #inspect(tdm[1:10,1])
-
-  clean <- tm_map(clean, removeWords, c(stopwords("english")))
-  messages<<- rbind(messages,paste("Unique stopwords removed - ",wordsRemoved(clean)))
-  #inspect(tdm[1:20,1])
 
   x <- mapply(FUN= function(...) {
     clean <<- gsub(...,x=clean, fixed=TRUE)},
@@ -117,67 +117,70 @@ cleanTokenizeCorpus <- function(clean) {
   messages<<- rbind(messages,paste("Unique words removed due to symbols - ",wordsRemoved(clean)))
   #clean <- tm_map(clean, stemDocument)
 
+  clean <- tm_map(clean, removeWords, profaneWords2)
+  messages<<- rbind(messages,paste("Unique words removed due to profanity - ", wordsRemoved(clean)))
+
+  clean <- tm_map(clean, removePunctuation)
+  messages<<- rbind(messages,paste("Unique words removed by removing punctuation - ",wordsRemoved(clean)))
+
+  clean <- tm_map(clean, removeNumbers)
+  messages<<- rbind(messages,paste("Unique words removed by removing numbers - ", wordsRemoved(clean)))
+
+  clean <- tm_map(clean, removeWords, c(stopwords("english")))
+  messages<<- rbind(messages,paste("Unique stopwords removed - ",wordsRemoved(clean)))
+
   # Remove entries with non-ASCII characters - entire blog entry from corpus is filtered out, if any non-ASCII letter is found in entire document. This is the proxy used for foreign language.
   # find indices of words with non-ASCII characters
-  dat2<- clean
-  dat3 <- grep("dat2", iconv(dat2, "latin1", "ASCII", sub="dat2"))
+  #dat2<- clean
+  #dat3 <- grep("dat2", iconv(dat2, "latin1", "ASCII", sub="dat2"))
   # subset original vector of words to exclude words with non-ASCII char
-  clean <- dat2[-dat3]
-  messages<<- rbind(messages,paste("Entries removed foreign language or special characters - ", length(dat3)))
-  rm(dat2)
-  rm(dat3)
+  #clean <- dat2[-dat3]
+  #messages<<- rbind(messages,paste("Entries removed due to special characters - ", length(dat3)))
+  #rm(dat2)
+  #rm(dat3)
   gc()
   messages<<- rbind(messages,paste("Unique words removed due to special character entries - ",wordsRemoved(clean)))
 
   clean <- tm_map(clean, stripWhitespace)
 
-  #tdm <- TermDocumentMatrix(clean)
-  #findFreqTerms(x = tdm, lowfreq = 1, highfreq = 1)[1:20]
   gc()
   tdm <<- TermDocumentMatrix(clean)
-  allWords<<- data.frame(freq = sort(rowSums(as.matrix(tdm)), decreasing=TRUE)) #dictionary of word with frequency
 
-  #inspect(tdm[1:5,1])
+  UnigramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min = 1, max = 1))}
+  x<- UnigramTokenizer(clean)
+  allWords1<<- sort(table(x), descending=TRUE)
+
+  BigramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min = 2, max = 2))}
+  x<- BigramTokenizer(clean)
+  allWords2<<- sort(table(x), descending=TRUE)
+
+  TrigramTokenizer <- function(x) {RWeka::NGramTokenizer(x, RWeka::Weka_control(min = 3, max = 3))}
+  x<- TrigramTokenizer(clean)
+  allWords3<<- sort(table(x), descending=TRUE)
+
+  allWords<<- list(allWords1, allWords2, allWords3)
   return(clean)
 
 }
 
-
-################
-#Execution scripts - to become part of rmd, and not functions
-
-#clean[[20]]
-#inspect(tdm[1:20,1:2])
-#rownames(tdm)[1:20]
-gc()
-
-#w = as.data.frame((as.matrix(tdm )) )
-#plot(table(colSums(w)))
-#findFreqTerms(x = tdm, lowfreq = 8, highfreq = Inf)
-#findAssocs(x = tdm, term = "away", corlimit = 0.2)
-#tdm.common.60 <- removeSparseTerms(x = tdm, sparse = 0.60) #higher sparse = more terms retained
-#rm(tdm.common.60)
-
-#findFreqTerms(tdm, 10)
-#findAssocs(tdm, 'will',.5)
-
-#inspect(DocumentTermMatrix(clean, list(dictionary = d))) #gives # of occurences of each of these words in each document
-#kmeans(tdm, 2)
-
-
-#display.brewer.all(type="div")
-makeCloud<- function(x) {
+#maxWords = # of words to show in word cloud. nrgam = 1,2,3
+makeCloud<- function(maxWords, ngram) {
   library(wordcloud)
   require(RColorBrewer)
   pal <- brewer.pal(9,"RdYlGn")
   pal <- pal[-(4:6)]
+  x<- sort(allWords[[ngram]], decreasing = TRUE)[1:maxWords]
   print(
     wordcloud(
-  rownames(allWords)[1:x],
-  as.numeric(allWords[1:x,1]),
-  min.freq=3, max.words=x,
-  random.order = FALSE, colors=pal
+      names(x),
+      as.numeric(x),
+      #scale = c(4,0.5),
+      min.freq=1,
+      max.words=maxWords,
+      random.order = FALSE,
+      colors=pal
     )
   )
-  #return(r)
 }
+
+
