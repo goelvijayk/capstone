@@ -1,4 +1,4 @@
-# Capstone project scratchpad
+# Capstone project final
 
 ##########################
 #INITIALIZE
