@@ -1,33 +1,33 @@
 ---
 title: "Capstone 1 percent sample exploration"
 author: "Vijay Goel"
-date: "March 22, 2015"
+date: "July 18, 2015"
 output: html_document
 ---
-
+ 
 #### Synopsis
 This project is about Text mining data from blogs, news and twitter, to predict next word as a user types. This document covers first part, which shares results from initial exploration of data, and plan for future prediction and presentation. This document has specified tasks, assumptions and approach, summary statistics from data cleaning, interesting results from early explorations.
 Please let me know of any feedback! Happy to incorporate.
-
+ 
 #####Tasks to accomplish
 Tokenization and Filtering - Data manually downloaded from links provided in course assignment and unzipped. US language selelcted, and functions created for tokenization and filtering. Logic shared below, followed by results. Scripts are loaded at https://github.com/goelvijayk/capstone/blob/master/scratch_capstone.R
-
+ 
 #####Logic used
 Capital/Lower case: All converted to lower case, and value of capitalization was ignored, towards prediction of next word. It is assumed that abbreviations, formatting (e.g. of first word in sentence) are of very low importance.
-
+ 
 Punctuation: handled by standard tm_map filters. All punctuation was removed. This spoils cases like I'd, wasn't, phrases within quotation marks etc. Impact assumed to be small.
-
+ 
 Times, dates, numbers and currency: Assumed not useful for prediction. All were removed.
-
+ 
 Typos: not addressed. Can try stemming, and recombining the words later. Or try connecting to an existing dictionary. Skipped for now.
-
-Garbage/wrong language: Assumed to have non-alphabets, non-numbers. Any element with any character outside of English was treated as foreign, and was removed from raw data. 
-
+ 
+Garbage/wrong language: Assumed to have non-alphabets, non-numbers. Any element with any character outside of English was treated as foreign, and was removed from raw data.
+ 
 Profanity: Profane words were assumed to be something we don't want to suggest to users. Hence, they were removed altogether. Couple of standard profane word lists were downloaded from internet, and used as filters. Links are available in R script for reference.
-
-Special characters: e.g. -, ., !, @ etc. were manually listed and removed. These are fairly hard to predict, and they mix the words up. Ignored for now. 
-
-
+ 
+Special characters: e.g. -, ., !, @ etc. were manually listed and removed. These are fairly hard to predict, and they mix the words up. Ignored for now.
+ 
+ 
 #### Results
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 source("~/Documents/Training/Capstone_Swiftkey/scripts/capstone/scratch_capstone.R")
@@ -42,6 +42,6 @@ makeCloud(50,1)
 makeCloud(20,2)
 makeCloud(20,3)
 ```
-
+ 
 Future plan:
-Attempt will mainly be to create a shiny app that can help predict next word as user types on a PC. This document only provides a confirmation that basic functions are documents are working. 
+Attempt will mainly be to create a shiny app that can help predict next word as user types on a PC. This document only provides a confirmation that basic functions are documents are working.

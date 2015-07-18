@@ -1,4 +1,4 @@
-# Capstone project scratchpad
+# Capstone project functions
 
 ##########################
 #INITIALIZE
@@ -47,12 +47,12 @@ initialize <- function() {
       n2[j+1]<- paste(n2[j+1], n[j*l+i])
     }
   }
-  clean<<- Corpus(VectorSource(c(t2,b2,n2))) #corpus
 
   rm(b);
   rm(t);
   rm(n);
   gc()
+
 
   messages<<- rbind(messages, paste("Total lines in en_US.blogs.txt are - ",as.numeric(countLines("en_US.blogs.txt"))))
   messages<<- rbind(messages, paste("Total lines in en_US.news.txt are - ",as.numeric(countLines("en_US.news.txt"))))
@@ -74,6 +74,8 @@ initialize <- function() {
   messages<<- rbind(messages, paste("Total words in en_US.news.txt sample are - ", sum(tdm)))
   messages<<- rbind(messages, paste("Total unique words in en_US.news.txt sample are - ", dim(tdm)[1]))
 
+  gc()
+
   #make lists of profane words
   #http://www.frontgatemedia.com/a-list-of-723-bad-words-to-blacklist-and-how-to-use-facebooks-moderation-tool/
   setwd("..")
@@ -83,6 +85,7 @@ initialize <- function() {
   p<- as.character(profaneWords2[,1])
   profaneWords2<<- gsub(",", "", p)
 
+  clean<<- Corpus(VectorSource(c(t2,b2,n2))) #corpus
 
 }
 
