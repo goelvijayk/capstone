@@ -44,4 +44,8 @@ makeCloud(20,3)
 ```
  
 Future plan:
+<<<<<<< HEAD
 Attempt will mainly be to create a shiny app that can help predict next word as user types on a PC. This document only provides a confirmation that basic functions are documents are working.
+=======
+Attempt will mainly be to create a shiny app that can help predict next word as user types on a PC. This document only provides a confirmation that basic functions are documents are working. 
+>>>>>>> FETCH_HEAD

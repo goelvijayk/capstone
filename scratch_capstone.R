@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Capstone project functions
+=======
+# Capstone project final
+>>>>>>> FETCH_HEAD
 
 ##########################
 #INITIALIZE
