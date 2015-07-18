@@ -1,7 +1,7 @@
 ---
 title: "Capstone 1 percent sample exploration"
 author: "Vijay Goel"
-date: "March 22, 2015"
+date: "July 18, 2015"
 output: html_document
 ---
 
